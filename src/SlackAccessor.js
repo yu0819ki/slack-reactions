@@ -33,24 +33,6 @@ class SlackAccessor {
     }
     return user;
   }
-
-  async findChannel(channelName, limit = null, cursor = null) {
-    const url = this.buildApiUrl('/channels.list', {cursor, limit});
-    const response = await axios.get(url);
-    const channels = _.get(response, 'data.channels', []);
-    const channel = _.find(channels, (channel) => {
-      return channel.name === channelName
-    });
-
-    if (channel === undefined) {
-      const nextCursor = _.get(response, 'data.response_metadata.next_cursor', null);
-      if (nextCursor === null) {
-        throw new Error('Channel not found.');
-      }
-      return this.findChannel(channelName, limit, nextCursor);
-    }
-    return channel;
-  }
 }
 
 export default SlackAccessor;
