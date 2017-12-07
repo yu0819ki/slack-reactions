@@ -6,8 +6,8 @@ const main = async function(link) {
   const { path } = url.parse(link);
   const [all, channel, sec, msec] = /\/archives\/(.+)\/p([0-9]+)([0-9]{6})$/.exec(path);
 
-  const slack = new SlackAccessor();
-  const reactions = await slack.getReactions(token, channel, `${sec}.${msec}`);
+  const slack = new SlackAccessor(token);
+  const reactions = await slack.getReactions(channel, `${sec}.${msec}`);
 
   return reactions;
 }

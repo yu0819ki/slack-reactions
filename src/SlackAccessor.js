@@ -4,18 +4,29 @@ import _ from 'lodash';
 
 class SlackAccessor {
 
-  buildApiUrl(endpoint, params) {
-    return [`https://slack.com/api${endpoint}`, qs.stringify(_.pickBy(params, (v) => {return v !== null;}))].join('?');
+  constructor(token) {
+    this.token = token;
   }
 
-  async getReactions(token, channelId, timestamp) {
-    const url = this.buildApiUrl('/reactions.get', {token, channel: channelId, timestamp});
+  buildApiUrl(endpoint, params) {
+    const url = [
+      `https://slack.com/api${endpoint}`,
+      qs.stringify(_.pickBy(
+        Object.assign(params, {token: this.token}),
+        (v) => {return v !== null;}))
+    ].join('?');
+    return url;
+  }
+
+  async getReactions(channelId, timestamp) {
+    const url = this.buildApiUrl('/reactions.get', {channel: channelId, timestamp});
     const response = await axios.get(url);
     return _.get(response, 'data.message.reactions', []);
   }
 
-  async findChannel(token, channelName, limit = null, cursor = null) {
-    const url = this.buildApiUrl('/channels.list', {token, cursor, limit});
+
+  async findChannel(channelName, limit = null, cursor = null) {
+    const url = this.buildApiUrl('/channels.list', {cursor, limit});
     const response = await axios.get(url);
     const channels = _.get(response, 'data.channels', []);
     const channel = _.find(channels, (channel) => {
@@ -27,7 +38,7 @@ class SlackAccessor {
       if (nextCursor === null) {
         throw new Error('Channel not found.');
       }
-      return this.findChannel(token, channelName, limit, nextCursor);
+      return this.findChannel(channelName, limit, nextCursor);
     }
     return channel;
   }
