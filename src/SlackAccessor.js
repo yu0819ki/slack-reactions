@@ -24,6 +24,15 @@ class SlackAccessor {
     return _.get(response, 'data.message.reactions', []);
   }
 
+  async getUserById(userId) {
+    const url = this.buildApiUrl('/users.info', {user: userId});
+    const response = await axios.get(url);
+    const user = _.get(response, 'data.user', null);
+    if (user === null) {
+      throw new Error('User not found.');
+    }
+    return user;
+  }
 
   async findChannel(channelName, limit = null, cursor = null) {
     const url = this.buildApiUrl('/channels.list', {cursor, limit});

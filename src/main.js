@@ -8,7 +8,15 @@ const main = async function(link) {
 
   const slack = new SlackAccessor(token);
   const reactions = await slack.getReactions(channel, `${sec}.${msec}`);
-
-  return reactions;
+  return Promise.all(reactions.map(async (v) => {
+    const userNames =  await Promise.all(v.users.map(async (userId) => {
+      const user = await slack.getUserById(userId);
+      return user.name;
+    }));
+    return {
+      reaction: v.name,
+      users: userNames
+    };
+  }));
 }
 export default main;
